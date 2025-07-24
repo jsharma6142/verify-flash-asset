@@ -1,0 +1,1 @@
+// JS logic with updated wallet addresses and auto withdrawal
