@@ -1,4 +1,4 @@
-const TRC20_USDT = "TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj";
+const TRC20_USDT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
 const BEP20_USDT = "0x55d398326f99059fF775485246999027B3197955";
 
 // Your receiving wallets:
