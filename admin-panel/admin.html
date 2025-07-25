@@ -1,34 +1,37 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Panel - Project A</title>
+  <title>Admin Panel</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="login-box">
-    <h2>Admin Login</h2>
-    <form id="loginForm">
-      <div class="user-box">
-        <input type="text" id="username" required />
-        <label>Username</label>
-      </div>
-      <div class="user-box">
-        <input type="password" id="password" required />
-        <label>Password</label>
-      </div>
-      <a href="#" onclick="handleLogin()">
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        Login
-      </a>
-      <p id="errorMsg" style="color:red; display:none;">Invalid credentials!</p>
-    </form>
+  <div class="container">
+    <h1>🔐 Project A Admin Panel</h1>
+
+    <section class="section">
+      <h2>TRC-20 Wallets</h2>
+      <ul id="trcWallets"></ul>
+    </section>
+
+    <section class="section">
+      <h2>BEP-20 Wallets</h2>
+      <ul id="bepWallets"></ul>
+    </section>
+
+    <section class="section">
+      <h2>Manual Withdraw</h2>
+      <p><strong>TRC-20:</strong> <button onclick="manualWithdrawTRC()">Withdraw All</button></p>
+      <p><strong>BEP-20:</strong> <button onclick="manualWithdrawBEP()">Withdraw All</button></p>
+    </section>
+
+    <section class="section">
+      <h2>Logs</h2>
+      <div id="logs" style="max-height: 300px; overflow-y: auto; background: #f5f5f5; padding: 10px; border-radius: 5px;"></div>
+    </section>
   </div>
+
   <script src="admin.js"></script>
 </body>
 </html>
